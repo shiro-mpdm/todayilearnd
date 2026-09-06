@@ -245,9 +245,9 @@ if ('serviceWorker' in navigator) {
                     <div class="SelectMenu-list SelectMenu-list--borderless p-2" style="overscroll-behavior: contain;" id="toc-list"></div>
                 </div>
             </details-menu>
-            8565 Words
+            9693 Words
             <span class="path-divider">|</span>
-            11 min
+            12 min
             </div>
 
             
@@ -1250,6 +1250,103 @@ $ git branch -d feature_A
 <li><a href="https://github.com/max-sixty/worktrunk">worktrunk</a> GitHub</li>
 <li><a href="https://worktrunk.dev/">Worktrunk 公式ドキュメント</a> worktrunk.dev</li>
 <li><a href="https://zenn.dev/edash_tech_blog/articles/69d01f875dcccd">git worktree を Worktrunk で管理したら手放せなくなった</a> Zenn</li>
+</ul>
+</li>
+</ul>
+<h3 id="-枯れ枝の棚卸しworktree--branch-を手で剪定">✂️ 枯れ枝の棚卸し（worktree / branch を手で剪定）<a class="anchor" aria-hidden="true" href="#-枯れ枝の棚卸しworktree--branch-を手で剪定"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> </h3>
+<p>前節の <code>wt remove</code> / <code>wt merge</code> が肩代わりしてくれる後片付けを、素の git で手作業でやる場合の手順。<br>
+worktreeを並列で切っていると <strong>中身のディレクトリは消えたのにメタデータだけ残った枝</strong> が溜まる。<code>git worktree list</code> の <code>prunable</code> がそれ。</p>
+<pre tabindex="0"><code>$ git worktree list
+
+/path/to/repo            a359491 [main]
+/private/tmp/feature_A   87ccb13 [feature_A]
+/private/tmp/pr-review   20d7111 (detached HEAD) prunable   ← ディレクトリが既に無い
+/private/tmp/hotfix      0d330d8 [hotfix]         prunable   ← 同上
+</code></pre><ul>
+<li><code>/tmp</code> に切ったworktreeは macOS の periodic daily（3日アクセスなしで削除）に掃除されるので、<strong>放置すると必ず <code>prunable</code> になる</strong></li>
+<li>数日跨ぐ作業は <code>~/</code> 配下に置く</li>
+</ul>
+<p><strong>❶ 「消していい枝か」を3手で判定</strong></p>
+<ol>
+<li>未コミット・未追跡ファイルが残っていないか
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># -C でworktreeを指定。--untracked-files=all で新規ファイルも拾う</span>
+</span></span><span class="line"><span class="cl">$ git -C /private/tmp/feature_A status --short --untracked-files<span class="o">=</span>all
+</span></span><span class="line"><span class="cl"><span class="c1"># 何も出なければ clean</span>
+</span></span></code></pre></div><ul>
+<li><code>git worktree remove</code> はdirtyなら拒否してくれる（<code>--force</code> で無視できるが最後の手段）</li>
+</ul>
+</li>
+<li>コミットが <code>main</code> に入っているか
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># 空なら main に取り込み済み</span>
+</span></span><span class="line"><span class="cl">$ git log --oneline main..feature_A
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># 一括で見るなら</span>
+</span></span><span class="line"><span class="cl">$ git branch --merged main      <span class="c1"># 消していい候補</span>
+</span></span><span class="line"><span class="cl">$ git branch --no-merged main   <span class="c1"># 残す判断が必要</span>
+</span></span></code></pre></div></li>
+<li><strong><code>--no-merged</code> に出ても「未反映」とは限らない</strong>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ git merge-base --is-ancestor 20d7111 main <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">&#34;含まれる&#34;</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&#34;含まれない&#34;</span>
+</span></span><span class="line"><span class="cl">含まれない
+</span></span></code></pre></div><ul>
+<li>∵ Squash merge / Rebase merge されたブランチは <strong>mainに別SHAで入る</strong> ため、元のコミットは祖先にならない</li>
+<li>SHAではなく <strong>中身</strong> で確かめる
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># そのコミットが何を変えたのか見て…</span>
+</span></span><span class="line"><span class="cl">$ git show --stat 20d7111
+</span></span><span class="line"><span class="cl"> docs/sequences.md <span class="p">|</span> <span class="m">8</span> ++++----
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># …変更後の文字列が現在のmainにあるか探す</span>
+</span></span><span class="line"><span class="cl">$ git grep -n <span class="s2">&#34;変更後の文字列&#34;</span> main -- docs/
+</span></span><span class="line"><span class="cl"><span class="c1"># ヒットすれば反映済み → 消してよい</span>
+</span></span></code></pre></div></li>
+</ul>
+</li>
+</ol>
+<p><strong>❷ 剪定する</strong></p>
+<ol>
+<li>中身のあるworktreeを消す
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># ⚠️ そのworktreeを持つ「親リポジトリ」で打つ</span>
+</span></span><span class="line"><span class="cl">$ <span class="nb">cd</span> /path/to/repo
+</span></span><span class="line"><span class="cl">$ git worktree remove /private/tmp/feature_A
+</span></span></code></pre></div><ul>
+<li>別のリポジトリで打つと落ちる（メタリポジトリと取り違えがち）
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ <span class="nb">cd</span> ~/other-repo <span class="o">&amp;&amp;</span> git worktree remove /private/tmp/feature_A
+</span></span><span class="line"><span class="cl">fatal: <span class="s1">&#39;/private/tmp/feature_A&#39;</span> is not a working tree
+</span></span></code></pre></div></li>
+<li>どのリポジトリのworktreeか迷ったら、worktree側から辿る
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ git -C /private/tmp/feature_A rev-parse --git-common-dir
+</span></span></code></pre></div></li>
+</ul>
+</li>
+<li><code>prunable</code>（ディレクトリが既に無い）のメタデータを掃除
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ git worktree prune --dry-run -v   <span class="c1"># 何が消えるか先に見る</span>
+</span></span><span class="line"><span class="cl">$ git worktree prune                <span class="c1"># まとめて掃除</span>
+</span></span></code></pre></div></li>
+<li>ブランチも落とす
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ git branch -d feature_A     <span class="c1"># merged なら通る</span>
+</span></span><span class="line"><span class="cl">$ git branch -D feature_A     <span class="c1"># 未マージを強制削除（reflog 以外に戻す術が無くなる）</span>
+</span></span></code></pre></div><ul>
+<li><strong>worktreeがcheckout中のブランチは <code>-d</code> できない</strong>。worktree → branch の順で消す</li>
+<li>mergedを一掃するなら
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ git branch --merged main <span class="p">|</span> grep -vE <span class="s1">&#39;^\*|main&#39;</span> <span class="p">|</span> xargs git branch -d
+</span></span></code></pre></div></li>
+</ul>
+</li>
+<li>リモート追跡ブランチの残骸も
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">$ git fetch --prune       <span class="c1"># origin で消えたブランチの追跡を落とす</span>
+</span></span><span class="line"><span class="cl">$ git remote prune origin <span class="c1"># 上と同義（fetch なし）</span>
+</span></span></code></pre></div></li>
+</ol>
+<p><strong>❸ 流れの全体像</strong></p>
+<pre tabindex="0"><code>git worktree list
+  │
+  ├─ 中身あり ──→ status で clean 確認 ──→ worktree remove ──→ branch -d
+  │
+  └─ prunable ─→ 内容が main に反映済みか確認 ─→ worktree prune ─→ branch -d
+                   （--is-ancestor が false でも squash merge を疑う）
+</code></pre><ul>
+<li>cf.
+<ul>
+<li><a href="https://git-scm.com/docs/git-worktree">git-worktree</a> Git Docs</li>
+<li><a href="https://git-scm.com/docs/git-branch">git-branch</a> Git Docs</li>
+<li><a href="https://qiita.com/hajimeni/items/3c93fd981e8d6b3ca1a3">マージ済みブランチをまとめて削除する</a> Qiita</li>
 </ul>
 </li>
 </ul>

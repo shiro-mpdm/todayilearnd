@@ -10,7 +10,7 @@
 		
 		
 		
-			<lastBuildDate>Sat, 22 Aug 2026 15:14:29 +0900</lastBuildDate>
+			<lastBuildDate>Wed, 26 Aug 2026 23:09:01 +0900</lastBuildDate>
 		
 			<atom:link href="https://kithub.f5.si/post/index.xml" rel="self" type="application/rss+xml" />
 			<item>
@@ -28,10 +28,10 @@
 				<description>📍 積んでしまったコミット履歴を後から整える手札のまとめ。&lt;code&gt;--amend&lt;/code&gt; / &lt;code&gt;--fixup&lt;/code&gt; + &lt;code&gt;rebase --autosquash&lt;/code&gt; / &lt;code&gt;rebase -i&lt;/code&gt; の squash を、いつ使うか・事故ったらどう戻すかまで含めて整理する。</description>
 			</item>
 			<item>
-				<title>[Data Governance] Personal Data Taxonomy &lt;個人情報 / 仮名加工情報 / 匿名加工情報 / 統計情報&gt;</title>
-				<link>https://kithub.f5.si/post/data_governance_personal_data_taxonomy/</link>
+				<title>[Data Engineer] Personal Data Taxonomy Governance</title>
+				<link>https://kithub.f5.si/post/data_engineer_personal_data_taxonomy_governance/</link>
 				<pubDate>Sun, 09 Aug 2026 16:29:55 +0900</pubDate>
-				<guid>https://kithub.f5.si/post/data_governance_personal_data_taxonomy/</guid>
+				<guid>https://kithub.f5.si/post/data_engineer_personal_data_taxonomy_governance/</guid>
 				<description>🔐 データ基盤で毎回迷う「このテーブル出していいの？」を、個人情報保護法の4つの箱で切り分ける。</description>
 			</item>
 			<item>

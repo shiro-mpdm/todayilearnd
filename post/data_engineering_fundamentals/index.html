@@ -245,9 +245,9 @@ if ('serviceWorker' in navigator) {
                     <div class="SelectMenu-list SelectMenu-list--borderless p-2" style="overscroll-behavior: contain;" id="toc-list"></div>
                 </div>
             </details-menu>
-            6819 Words
+            7637 Words
             <span class="path-divider">|</span>
-            7 min
+            8 min
             </div>
 
             
@@ -427,6 +427,119 @@ if ('serviceWorker' in navigator) {
     <p>エラーメッセージが「どの層」のものかを当てると原因の範囲が一気に絞れる。</p>
 </div>
 
+<h3 id="osi-7層との対応">OSI 7層との対応<a class="anchor" aria-hidden="true" href="#osi-7層との対応"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> </h3>
+<p>現場の会話には OSI 7層の語彙が混ざる。
+<strong>4層モデルは障害の切り分け用、7層モデルは設計の会話用</strong>と割り切ると混乱しない。</p>
+<table>
+	<thead>
+			<tr>
+					<th>OSI</th>
+					<th>TCP/IP</th>
+					<th>データエンジニアの接点</th>
+					<th>優先度</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>L7 アプリケーション</td>
+					<td>アプリ層</td>
+					<td>HTTP / gRPC、429・503、L7 LB</td>
+					<td>必須</td>
+			</tr>
+			<tr>
+					<td>L6 プレゼンテーション</td>
+					<td>アプリ層</td>
+					<td>TLS、証明書期限、SNI、mTLS</td>
+					<td>中</td>
+			</tr>
+			<tr>
+					<td>L5 セッション</td>
+					<td>アプリ層</td>
+					<td>コネクションプール、Keep-Alive</td>
+					<td>中</td>
+			</tr>
+			<tr>
+					<td>L4 トランスポート</td>
+					<td>トランスポート層</td>
+					<td>TCP 3-way、<code>RST</code>、L4 LB</td>
+					<td>必須</td>
+			</tr>
+			<tr>
+					<td>L3 ネットワーク</td>
+					<td>インターネット層</td>
+					<td>VPC / サブネット、NAT、FW</td>
+					<td>中</td>
+			</tr>
+			<tr>
+					<td>L2 データリンク</td>
+					<td>リンク層</td>
+					<td>MAC / ARP / VLAN</td>
+					<td>薄く</td>
+			</tr>
+			<tr>
+					<td>L1 物理</td>
+					<td>リンク層</td>
+					<td>ケーブル・NIC</td>
+					<td>不要</td>
+			</tr>
+	</tbody>
+</table>
+
+<div class="markdown-alert markdown-alert-note">
+    <p class="markdown-alert-title">
+        
+        <svg class="octicon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>
+        Note
+        
+    </p>
+    <p>OSI の L5–L7 は TCP/IP では 1 つのアプリ層に潰れている。TLS は TCP の上に乗る別レイヤで 7層のどこにも綺麗に収まらず、慣習的に L5–L6 と呼ばれているだけ。<strong>7層を暗記する実益は薄く、覚える価値があるのは「L4 / L7」という言い分け</strong>。
+cf. <a href="https://x.com/asynctrix/status/2094438693880881471?s=46&amp;t=RSRnjQg5szbGQ19iUHwMlg">X</a></p>
+</div>
+
+<h3 id="l4--l7-ロードバランサの違い">L4 / L7 ロードバランサの違い<a class="anchor" aria-hidden="true" href="#l4--l7-ロードバランサの違い"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> </h3>
+<p>クラウドの設計会話で最も頻出する層の語彙がこれ。違いは <strong>どこまでパケットの中身を開けるか</strong> の一点。</p>
+<table>
+	<thead>
+			<tr>
+					<th>観点</th>
+					<th>L4 LB</th>
+					<th>L7 LB</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>見るもの</td>
+					<td>IP + ポート（TCP/UDP ヘッダ）</td>
+					<td>HTTP ヘッダ・パス・ホスト名</td>
+			</tr>
+			<tr>
+					<td>TLS 終端</td>
+					<td>しない（そのまま流す）</td>
+					<td>する（証明書を LB に置く）</td>
+			</tr>
+			<tr>
+					<td>振り分け条件</td>
+					<td>接続単位（5-tuple ハッシュ）</td>
+					<td>パス / ホスト / ヘッダで分岐</td>
+			</tr>
+			<tr>
+					<td>リトライ</td>
+					<td>できない（TCP を張り直すだけ）</td>
+					<td>HTTP リクエスト単位で可能</td>
+			</tr>
+			<tr>
+					<td>Google Cloud の例</td>
+					<td>Network Load Balancing（パススルー）</td>
+					<td>Application Load Balancing</td>
+			</tr>
+	</tbody>
+</table>
+<p>データ基盤で効くのは <strong>「エラーがどちらの LB の下で出たか」</strong>。</p>
+<ul>
+<li><strong>L7 LB 配下</strong> … <code>502</code> / <code>504</code> は LB がバックエンドを待ち切れなかった合図。HTTP レベルのアクセスログが Cloud Logging に残るので追跡できる</li>
+<li><strong>L4 LB（パススルー）配下</strong> … HTTP ステータスが出ない。同じ事象が <code>Connection reset by peer</code> やタイムアウトとして現れるので、上の症状表を使う</li>
+<li><strong>弾かれた層の切り分け</strong> … Firewall / VPC のルールは L3/L4、VPC-SC や IAP は L7 の制御。<code>nc -vz</code> が通るのに <code>curl</code> が 403 なら、上の層で止められている</li>
+</ul>
 <h3 id="tcp-の挙動で知っておくべき4つ">TCP の挙動で知っておくべき4つ<a class="anchor" aria-hidden="true" href="#tcp-の挙動で知っておくべき4つ"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> </h3>
 <h4 id="1-3-way-handshake接続を張る">(1) 3-way handshake（接続を張る）<a class="anchor" aria-hidden="true" href="#1-3-way-handshake接続を張る"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> </h4>
 <pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">sequenceDiagram
@@ -1152,6 +1265,7 @@ if ('serviceWorker' in navigator) {
 <li><a href="https://github.com/donnemartin/system-design-primer">System Design Primer</a></li>
 <li><a href="https://hpbn.co/">High Performance Browser Networking — Ilya Grigorik</a></li>
 <li><a href="https://cloud.google.com/network-tiers/docs/overview">Google Cloud — Network Service Tiers Overview</a></li>
+<li><a href="https://cloud.google.com/load-balancing/docs/load-balancing-overview">Google Cloud — Cloud Load Balancing overview</a></li>
 <li><a href="https://wizardzines.com/zines/dns/">Julia Evans — How DNS works</a></li>
 <li><a href="https://cloud.google.com/dns/docs/overview">Google Cloud DNS Overview</a></li>
 <li><a href="https://cloud.google.com/bigquery/docs/cached-results">BigQuery — Query cache documentation</a></li>
